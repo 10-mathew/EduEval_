@@ -7,6 +7,7 @@ from functools import wraps
 
 from flask import (Flask, request, jsonify, session, redirect,
                    url_for, render_template, g, abort)
+from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import google.generativeai as genai
@@ -27,18 +28,48 @@ ALLOWED_EXT = {".pdf", ".png", ".jpg", ".jpeg", ".gif", ".tiff", ".bmp", ".webp"
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production-please")
 
+FRONTEND_ORIGINS_RAW = os.environ.get(
+    "FRONTEND_ORIGINS",
+    "http://localhost:5000,http://127.0.0.1:5000,https://10-mathew.github.io",
+)
+FRONTEND_ORIGINS = [o.strip() for o in FRONTEND_ORIGINS_RAW.split(",") if o.strip()]
+
+if FRONTEND_ORIGINS:
+    CORS(
+        app,
+        resources={r"/api/*": {"origins": FRONTEND_ORIGINS}},
+        supports_credentials=True,
+    )
+
 # Google / Gemini keys — set in environment
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GOOGLE_CLOUD_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 OCR_LOW_CONF_THRESHOLD = float(os.environ.get("OCR_LOW_CONF_THRESHOLD", "0.75"))
 
+# Optional: JSON credentials payload to avoid mounting a credentials file in deployment.
+GOOGLE_CREDENTIALS_JSON = os.environ.get("GOOGLE_CREDENTIALS_JSON", "").strip()
+if GOOGLE_CREDENTIALS_JSON and not GOOGLE_CLOUD_CREDENTIALS:
+    cred_path = BASE_DIR / "instance" / "gcp_credentials.json"
+    cred_path.parent.mkdir(exist_ok=True)
+    with open(cred_path, "w", encoding="utf-8") as f:
+        f.write(GOOGLE_CREDENTIALS_JSON)
+    GOOGLE_CLOUD_CREDENTIALS = str(cred_path)
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_CLOUD_CREDENTIALS
+
+if os.environ.get("SESSION_COOKIE_SAMESITE"):
+    app.config["SESSION_COOKIE_SAMESITE"] = os.environ.get("SESSION_COOKIE_SAMESITE")
+if os.environ.get("SESSION_COOKIE_SECURE"):
+    app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
+if os.environ.get("SESSION_COOKIE_DOMAIN"):
+    app.config["SESSION_COOKIE_DOMAIN"] = os.environ.get("SESSION_COOKIE_DOMAIN")
+
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
 # ── Database ───────────────────────────────────────────────────────────────────
 
-DB_PATH = BASE_DIR / "instance" / "edueval.db"
+DB_PATH = Path(os.environ.get("DB_PATH", str(BASE_DIR / "instance" / "edueval.db")))
 DB_PATH.parent.mkdir(exist_ok=True)
 
 SCHEMA = """
@@ -1107,6 +1138,11 @@ def get_results(exam_id):
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
 
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/")
 def index():
     return redirect(url_for("app_page"))
@@ -1143,4 +1179,6 @@ def logout_page():
 init_db()
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    port = int(os.environ.get("PORT", "5000"))
+    app.run(host="0.0.0.0", debug=debug_mode, port=port)

@@ -126,6 +126,42 @@ edueval/
 
 ---
 
+## Deploy Backend (Render + GitHub Pages Frontend)
+
+`docs/index.html` is configured for GitHub Pages and can call a deployed backend.
+
+### Backend on Render
+
+This repo includes `render.yaml` and `Procfile`.
+
+1. Create a new Render Web Service from this repo.
+2. Render should detect:
+   - Build command: `pip install -r requirements.txt`
+   - Start command: `gunicorn app:app`
+3. Set required environment variables in Render:
+   - `GEMINI_API_KEY`
+   - One of:
+     - `GOOGLE_APPLICATION_CREDENTIALS` (file path in runtime), or
+     - `GOOGLE_CREDENTIALS_JSON` (raw service account JSON string)
+4. Confirm/adjust:
+   - `FRONTEND_ORIGINS=https://10-mathew.github.io`
+   - `SESSION_COOKIE_SECURE=true`
+   - `SESSION_COOKIE_SAMESITE=None`
+   - `SECRET_KEY` (strong random value)
+5. Deploy and verify health endpoint:
+   - `GET /health` returns `{ "status": "ok" }`
+
+### GitHub Pages frontend
+
+1. In GitHub Pages settings, use:
+   - Branch: `main`
+   - Folder: `/docs`
+2. Open the Pages site and set backend URL in the top bar:
+   - e.g. `https://your-render-service.onrender.com`
+3. Login from the in-page Connect form and run the workflow.
+
+---
+
 ## Production Checklist
 
 - [ ] Set `SECRET_KEY` to a long random string
