@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduEval Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090a11;
+      --bg-accent: #141625;
+      --surface: #121423;
+      --surface-2: #181b2e;
+      --border: #2c3251;
+      --text: #edf0ff;
+      --muted: #a3abcc;
+      --accent: #d7f06d;
+      --accent-ink: #0f1300;
+      --ok: #35d7a3;
+      --bad: #ff7f88;
+      --r: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(1000px 580px at -8% -15%, #202642 0%, transparent 60%),
+        radial-gradient(900px 520px at 108% -8%, #1a2a3d 0%, transparent 58%),
+        linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 44%);
+      color: var(--text);
+      font-family: "Syne", sans-serif;
+      padding: 20px;
+    }
+    .card {
+      width: min(450px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%), var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.24);
+    }
+    h1 {
+      font-size: 31px;
+      letter-spacing: -0.6px;
+      margin-bottom: 6px;
+    }
+    p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .field { margin-bottom: 12px; }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-family: "DM Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 12px;
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+    input:focus,
+    button:focus-visible,
+    a:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(215, 240, 109, 0.2);
+      outline: none;
+    }
+    button {
+      width: 100%;
+      border: 1px solid var(--accent);
+      border-radius: var(--r);
+      min-height: 42px;
+      margin-top: 4px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: "Syne", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 140ms ease;
+    }
+    button:hover:not(:disabled) { filter: brightness(1.06); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .msg {
+      min-height: 18px;
+      margin-top: 12px;
+      font-size: 12px;
+      font-family: "DM Mono", monospace;
+      color: var(--muted);
+    }
+    .msg.ok { color: var(--ok); }
+    .msg.error { color: var(--bad); }
+    .hint {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .hint a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+    .hint a:hover { border-bottom-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Create Teacher Account</h1>
+    <p>Register once to access the guided exam marking workflow.</p>
+
+    <form id="registerForm" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="new-password" required />
+      </div>
+      <div class="field">
+        <label for="confirmPassword">Confirm Password</label>
+        <input id="confirmPassword" type="password" autocomplete="new-password" required />
+      </div>
+
+      <button id="registerBtn" type="submit">Register</button>
+      <div id="msg" class="msg" aria-live="polite"></div>
+    </form>
+
+    <div class="hint">Already have an account? <a href="/login">Login</a></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("registerForm");
+    const btn = document.getElementById("registerBtn");
+    const msg = document.getElementById("msg");
+
+    function setMsg(text, type = "error") {
+      msg.textContent = text || "";
+      msg.className = `msg ${type}`;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (!username || !password || !confirmPassword) {
+        setMsg("All fields are required.", "error");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setMsg("Passwords do not match.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      setMsg("Creating account...", "ok");
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, confirm_password: confirmPassword }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          setMsg(data.error || "Registration failed.", "error");
+          btn.disabled = false;
+          return;
+        }
+
+        setMsg("Registration successful. Redirecting to login...", "ok");
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 700);
+      } catch (_) {
+        setMsg("Network error. Please try again.", "error");
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

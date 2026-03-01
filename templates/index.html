@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduEval - Guided Workflow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090a11;
+      --bg-accent: #141625;
+      --surface: #121423;
+      --surface-2: #181b2e;
+      --surface-3: #1f2338;
+      --border: #2c3251;
+      --text: #edf0ff;
+      --muted: #a3abcc;
+      --muted-2: #7f87ab;
+      --accent: #d7f06d;
+      --accent-ink: #0f1300;
+      --ok: #35d7a3;
+      --warn: #ffbe63;
+      --bad: #ff7f88;
+      --info: #6dc7ff;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-7: 32px;
+      --space-8: 40px;
+
+      --r-sm: 8px;
+      --r-md: 12px;
+      --r-lg: 16px;
+      --r-pill: 999px;
+
+      --shadow-1: 0 4px 24px rgba(0, 0, 0, 0.22);
+
+      --font-head: "Syne", sans-serif;
+      --font-mono: "DM Mono", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--font-head);
+      background:
+        radial-gradient(1200px 560px at -8% -12%, #202642 0%, transparent 62%),
+        radial-gradient(900px 520px at 110% -10%, #1a2a3d 0%, transparent 58%),
+        linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 42%);
+      line-height: 1.45;
+      padding: var(--space-6);
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      gap: var(--space-5);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .title {
+      font-size: clamp(26px, 4vw, 36px);
+      line-height: 1.05;
+      letter-spacing: -0.8px;
+      font-weight: 800;
+      margin-bottom: var(--space-1);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%), var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-1);
+    }
+
+    .exam-toolbar {
+      padding: var(--space-4);
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    .exam-meta {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-width: 0;
+    }
+
+    .exam-meta strong {
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .exam-meta span {
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .stepper-wrap {
+      position: sticky;
+      top: var(--space-4);
+      z-index: 9;
+    }
+
+    .stepper {
+      padding: var(--space-3);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-2);
+    }
+
+    .step-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: var(--space-2) var(--space-3);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: left;
+      transition: border-color 180ms ease, transform 180ms ease, color 180ms ease, background 180ms ease;
+    }
+
+    .step-btn .n {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .step-btn .k {
+      font-size: 11px;
+      color: var(--muted-2);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: block;
+    }
+
+    .step-btn .t {
+      font-weight: 700;
+      font-size: 12px;
+      display: block;
+    }
+
+    .step-btn.active {
+      border-color: rgba(215, 240, 109, 0.6);
+      background: rgba(215, 240, 109, 0.08);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .step-btn.active .n {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    .step-btn.complete {
+      border-color: rgba(53, 215, 163, 0.45);
+      color: var(--text);
+    }
+
+    .step-btn.complete .n {
+      border-color: var(--ok);
+      background: rgba(53, 215, 163, 0.15);
+      color: var(--ok);
+    }
+
+    .step-btn.locked {
+      opacity: 0.78;
+      cursor: default;
+    }
+
+    .step-btn.complete:not(:disabled):hover,
+    .step-btn.active:not(:disabled):hover {
+      border-color: var(--accent);
+    }
+
+    .step-btn:disabled {
+      pointer-events: none;
+    }
+
+    .wizard {
+      display: grid;
+      gap: var(--space-4);
+    }
+
+    .stage {
+      overflow: hidden;
+      transition: border-color 180ms ease;
+    }
+
+    .stage-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding: var(--space-5);
+      border-bottom: 1px solid transparent;
+    }
+
+    .stage-head h2 {
+      font-size: clamp(20px, 3.2vw, 24px);
+      letter-spacing: -0.5px;
+      margin-bottom: var(--space-1);
+    }
+
+    .stage-head p {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .stage-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-pill);
+      padding: 5px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      background: var(--surface-2);
+      white-space: nowrap;
+    }
+
+    .stage-body {
+      padding: var(--space-5);
+      border-top: 1px solid var(--border);
+      display: none;
+      animation: fadeSlide 200ms ease;
+    }
+
+    .stage-summary {
+      padding: 0 var(--space-5) var(--space-5);
+      display: none;
+      color: var(--muted);
+      font-size: 13px;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .stage-summary .summary-text {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .stage.active {
+      border-color: rgba(215, 240, 109, 0.45);
+    }
+
+    .stage.active .stage-body {
+      display: block;
+    }
+
+    .stage.complete .stage-summary {
+      display: flex;
+    }
+
+    .stage.complete:not(.active) .stage-body {
+      display: none;
+    }
+
+    .stage.complete .stage-head {
+      border-bottom-color: var(--border);
+    }
+
+    .status-chip {
+      border-radius: var(--r-pill);
+      padding: 6px 10px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1;
+    }
+
+    .status-chip.idle { color: var(--muted); }
+    .status-chip.info { color: var(--info); border-color: rgba(109,199,255,0.5); }
+    .status-chip.running { color: var(--info); border-color: rgba(109,199,255,0.5); }
+    .status-chip.success { color: var(--ok); border-color: rgba(53,215,163,0.5); }
+    .status-chip.warning { color: var(--warn); border-color: rgba(255,190,99,0.5); }
+    .status-chip.error { color: var(--bad); border-color: rgba(255,127,136,0.5); }
+
+    .status-text {
+      margin-top: var(--space-2);
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+
+    .row { margin-bottom: var(--space-3); }
+
+    label {
+      display: block;
+      margin-bottom: var(--space-2);
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      font-family: var(--font-mono);
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: var(--surface-2);
+      color: var(--text);
+      min-height: 42px;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus,
+    .btn:focus-visible,
+    .step-btn:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(215, 240, 109, 0.2);
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      min-height: 40px;
+      padding: 0 var(--space-4);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--font-head);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) { border-color: var(--accent); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+
+    .btn.primary {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-color: var(--accent);
+    }
+
+    .btn.secondary {
+      background: var(--surface-2);
+      color: var(--text);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .btn.small {
+      min-height: 34px;
+      font-size: 12px;
+      padding: 0 12px;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      margin-top: var(--space-4);
+    }
+
+    .dropzone {
+      border: 1px dashed var(--border);
+      border-radius: var(--r-md);
+      background: var(--surface-2);
+      min-height: 112px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: var(--space-4);
+      position: relative;
+      transition: border-color 180ms ease, background 180ms ease;
+    }
+
+    .dropzone:hover,
+    .dropzone.drag-over {
+      border-color: var(--accent);
+      background: rgba(215, 240, 109, 0.05);
+    }
+
+    .dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .dropzone .icon {
+      font-size: 25px;
+      margin-bottom: var(--space-1);
+    }
+
+    .dropzone .line-1 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .dropzone .line-2 {
+      color: var(--muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .file-list {
+      margin-top: var(--space-2);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .file-chip {
+      border: 1px solid var(--border);
+      border-radius: var(--r-pill);
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      background: var(--surface-2);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty {
+      border: 1px dashed var(--border);
+      border-radius: var(--r-md);
+      padding: var(--space-4);
+      color: var(--muted);
+      font-size: 13px;
+      background: rgba(255,255,255,0.01);
+    }
+
+    .student-list,
+    .review-list,
+    .results-list {
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+
+    .student-item,
+    .review-item,
+    .result-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      background: var(--surface-2);
+      padding: var(--space-3);
+    }
+
+    .student-top,
+    .review-top,
+    .result-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .student-name,
+    .review-name,
+    .result-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .student-actions,
+    .review-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      border: 1px solid var(--border);
+      border-radius: var(--r-pill);
+      padding: 4px 8px;
+      font-size: 10px;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      background: var(--surface-3);
+    }
+
+    .badge.ok { color: var(--ok); border-color: rgba(53,215,163,0.5); }
+    .badge.warn { color: var(--warn); border-color: rgba(255,190,99,0.5); }
+    .badge.bad { color: var(--bad); border-color: rgba(255,127,136,0.5); }
+    .badge.info { color: var(--info); border-color: rgba(109,199,255,0.5); }
+
+    .review-panel {
+      margin-top: var(--space-4);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: var(--space-4);
+      background: var(--surface-2);
+    }
+
+    .review-warning {
+      margin-bottom: var(--space-3);
+      border: 1px solid rgba(255, 190, 99, 0.55);
+      border-radius: var(--r-sm);
+      background: rgba(255, 190, 99, 0.08);
+      color: var(--warn);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+    }
+
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: var(--space-3);
+      background: var(--surface-2);
+    }
+
+    .metric .k {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--muted-2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .metric .v {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .score-pill {
+      border-radius: var(--r-pill);
+      padding: 6px 10px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      border: 1px solid var(--border);
+      background: var(--surface-3);
+    }
+
+    .score-pill.ok { color: var(--ok); border-color: rgba(53,215,163,0.5); }
+    .score-pill.warn { color: var(--warn); border-color: rgba(255,190,99,0.5); }
+    .score-pill.bad { color: var(--bad); border-color: rgba(255,127,136,0.5); }
+
+    .progress {
+      height: 6px;
+      border-radius: var(--r-pill);
+      background: #0f1120;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-top: var(--space-2);
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #66c9ff, #d7f06d);
+    }
+
+    .result-body {
+      margin-top: var(--space-3);
+      display: none;
+      gap: var(--space-2);
+    }
+
+    .result-card.open .result-body {
+      display: grid;
+    }
+
+    .eval-row {
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--surface-3);
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .eval-row .q {
+      font-family: var(--font-mono);
+      color: var(--info);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .eval-row .m {
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .feedback {
+      border-left: 2px solid var(--info);
+      padding-left: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: var(--space-3);
+    }
+
+    .hidden { display: none !important; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1020px) {
+      .stepper { grid-template-columns: repeat(2, 1fr); }
+      .split { grid-template-columns: 1fr; }
+      .exam-toolbar { grid-template-columns: 1fr; }
+      .summary-strip { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      body { padding: var(--space-3); }
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .toolbar { justify-content: flex-start; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .stage-head { padding: var(--space-4); }
+      .stage-body { padding: var(--space-4); }
+      .stage-summary { padding: 0 var(--space-4) var(--space-4); }
+      .stepper-wrap { top: var(--space-2); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div>
+        <h1 class="title">EduEval</h1>
+        <div class="subtitle">Teacher: {{ username }}</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn secondary" id="refreshExamBtn" type="button">Refresh Exam</button>
+        <button class="btn" id="logoutBtn" type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="panel exam-toolbar" aria-label="Exam chooser">
+      <div class="exam-meta" id="currentExamMeta">
+        <strong>No exam selected</strong>
+        <span>Create a new exam in Step 1 or open an existing exam below.</span>
+      </div>
+      <select id="examSelect" aria-label="Select exam"></select>
+      <button class="btn secondary" id="openExamBtn" type="button">Open Selected Exam</button>
+      <button class="btn" id="deleteExamBtn" type="button">Delete Exam</button>
+    </section>
+
+    <div class="stepper-wrap">
+      <section class="panel stepper" id="wizardHeader" aria-label="Wizard progress"></section>
+    </div>
+
+    <main class="wizard" id="wizardStages">
+      <section class="panel stage" id="stage-1">
+        <div class="stage-head">
+          <div>
+            <h2>1. Exam Setup</h2>
+            <p>Upload question paper, auto-prepare questions, and generate model answers.</p>
+          </div>
+          <span class="stage-tag" id="stage-tag-1">Required</span>
+        </div>
+        <div class="stage-summary" id="summary-1"></div>
+        <div class="stage-body">
+          <div class="grid-2">
+            <div class="row">
+              <label for="examTitle">Exam Title</label>
+              <input id="examTitle" type="text" placeholder="e.g. Midterm Physics - Section A" />
+            </div>
+            <div class="row">
+              <label for="questionPaper">Question Paper (PDF/Image)</label>
+              <div class="dropzone" id="qpDrop">
+                <input id="questionPaper" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp" />
+                <div>
+                  <div class="icon">📄</div>
+                  <div class="line-1">Drop or select question paper</div>
+                  <div class="line-2">PDF, PNG, JPG, WEBP, TIFF, BMP</div>
+                </div>
+              </div>
+              <div class="file-list" id="qpFiles"></div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="createExamBtn" type="button">Create Exam &amp; Auto-Prepare</button>
+            <button class="btn ghost hidden" id="manualQuestionBtn" type="button">Open Manual Question Entry</button>
+          </div>
+          <div style="margin-top:12px;">
+            <span class="status-chip idle" id="statusChip1">Idle</span>
+            <div class="status-text" id="statusText1">Start by entering exam title and uploading a question paper.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel stage" id="stage-2">
+        <div class="stage-head">
+          <div>
+            <h2>2. Students</h2>
+            <p>Add students, upload answer sheets, and run OCR per student or in batch.</p>
+          </div>
+          <span class="stage-tag" id="stage-tag-2">Locked</span>
+        </div>
+        <div class="stage-summary" id="summary-2"></div>
+        <div class="stage-body">
+          <div class="grid-2">
+            <div class="row">
+              <label for="studentName">Student Name</label>
+              <input id="studentName" type="text" placeholder="e.g. Aisha Khan" />
+            </div>
+            <div class="row">
+              <label for="studentSheets">Answer Sheets</label>
+              <div class="dropzone" id="sheetDrop">
+                <input id="studentSheets" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.tiff,.bmp" />
+                <div>
+                  <div class="icon">📝</div>
+                  <div class="line-1">Drop or select answer sheets</div>
+                  <div class="line-2">Multiple files allowed</div>
+                </div>
+              </div>
+              <div class="file-list" id="sheetFiles"></div>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="addStudentBtn" type="button">Add Student</button>
+            <button class="btn secondary" id="runAllOcrBtn" type="button">Run OCR For All Students</button>
+          </div>
+          <div style="margin-top:12px;">
+            <span class="status-chip idle" id="statusChip2">Idle</span>
+            <div class="status-text" id="statusText2">Add at least one student to continue.</div>
+          </div>
+          <div class="student-list" id="studentList"></div>
+        </div>
+      </section>
+
+      <section class="panel stage" id="stage-3">
+        <div class="stage-head">
+          <div>
+            <h2>3. OCR Review</h2>
+            <p>Review OCR confidence and save corrected script text where needed.</p>
+          </div>
+          <span class="stage-tag" id="stage-tag-3">Locked</span>
+        </div>
+        <div class="stage-summary" id="summary-3"></div>
+        <div class="stage-body">
+          <div style="margin-bottom:12px;">
+            <span class="status-chip idle" id="statusChip3">Idle</span>
+            <div class="status-text" id="statusText3">Select a student from the list to load OCR text for review.</div>
+          </div>
+          <div class="review-list" id="reviewList"></div>
+
+          <div class="review-panel hidden" id="reviewPanel">
+            <div class="review-warning hidden" id="reviewWarning"></div>
+            <div class="split">
+              <div>
+                <label for="ocrRaw">OCR Raw Text</label>
+                <textarea id="ocrRaw" readonly></textarea>
+              </div>
+              <div>
+                <label for="correctedScript">Corrected Script (Used In Evaluation)</label>
+                <textarea id="correctedScript" placeholder="Edit OCR text here before evaluation..."></textarea>
+              </div>
+            </div>
+            <div class="actions">
+              <button class="btn primary" id="saveCorrectionBtn" type="button">Save Corrected Script</button>
+              <button class="btn ghost" id="clearReviewBtn" type="button">Close Review</button>
+            </div>
+            <div class="status-text" id="reviewSaveText"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel stage" id="stage-4">
+        <div class="stage-head">
+          <div>
+            <h2>4. Evaluate & Results</h2>
+            <p>Run AI evaluation and review per-student marks, reasons, and feedback.</p>
+          </div>
+          <span class="stage-tag" id="stage-tag-4">Locked</span>
+        </div>
+        <div class="stage-summary" id="summary-4"></div>
+        <div class="stage-body">
+          <div class="actions" style="margin-top:0;">
+            <button class="btn primary" id="evaluateBtn" type="button">Run Evaluation</button>
+            <button class="btn secondary" id="refreshResultsBtn" type="button">Refresh Results</button>
+          </div>
+          <div style="margin-top:12px;">
+            <span class="status-chip idle" id="statusChip4">Idle</span>
+            <div class="status-text" id="statusText4">Evaluation is enabled once OCR or corrected script exists.</div>
+          </div>
+
+          <div class="summary-strip" id="resultsSummary"></div>
+          <div class="results-list" id="resultsList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const state = {
+      exams: [],
+      exam: null,
+      students: [],
+      questions: [],
+      results: [],
+      review: {
+        studentId: null,
+      },
+      ocrMeta: {},
+      ui: {
+        currentStep: 1,
+        stepStatus: { 1: "active", 2: "locked", 3: "locked", 4: "locked" },
+        busy: {
+          createExam: false,
+          addStudent: false,
+          ocr: false,
+          evaluate: false,
+          review: false,
+          saveCorrection: false,
+        },
+      },
+    };
+
+    const stepDefs = [
+      { id: 1, key: "setup", title: "Exam Setup" },
+      { id: 2, key: "students", title: "Students" },
+      { id: 3, key: "review", title: "OCR Review" },
+      { id: 4, key: "results", title: "Evaluate" },
+    ];
+
+    function fmtDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      return Number.isNaN(d.getTime()) ? dateStr : d.toLocaleDateString();
+    }
+
+    function escHtml(s) {
+      if (s == null) return "";
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;");
+    }
+
+    async function api(method, url, body = null, isForm = false) {
+      const opts = { method, credentials: "include" };
+      if (body) {
+        if (isForm) {
+          opts.body = body;
+        } else {
+          opts.headers = { "Content-Type": "application/json" };
+          opts.body = JSON.stringify(body);
+        }
+      }
+      try {
+        const res = await fetch(url, opts);
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return { error: "Unauthorized" };
+        }
+        if (!res.ok) return { error: data.error || "Request failed" };
+        return data;
+      } catch (err) {
+        return { error: err.message || "Network error" };
+      }
+    }
+
+    function setBusy(key, on) {
+      state.ui.busy[key] = on;
+      renderControls();
+    }
+
+    function setStatus(step, type, text) {
+      const chip = document.getElementById(`statusChip${step}`);
+      const msg = document.getElementById(`statusText${step}`);
+      if (!chip || !msg) return;
+      chip.className = `status-chip ${type}`;
+      chip.textContent = type;
+      msg.textContent = text || "";
+    }
+
+    function resetStatuses() {
+      setStatus(1, "idle", "Start by entering exam title and uploading a question paper.");
+      setStatus(2, "idle", "Add at least one student to continue.");
+      setStatus(3, "idle", "Select a student from the list to load OCR text for review.");
+      setStatus(4, "idle", "Evaluation is enabled once OCR or corrected script exists.");
+      document.getElementById("reviewSaveText").textContent = "";
+    }
+
+    function canEvaluate() {
+      return state.students.some((s) => {
+        const meta = state.ocrMeta[s.id];
+        return Boolean((s.corrected_script || "").trim() || (meta && meta.hasOcr));
+      });
+    }
+
+    function syncStepStateFromData() {
+      const hasExam = Boolean(state.exam && state.exam.id);
+      const step1Done = hasExam && state.questions.length > 0 && state.questions.some((q) => q.model_answer);
+      const step2Done = state.students.length > 0;
+      const step3Done = canEvaluate();
+      const step4Done = state.results.some((r) => r.total_marks != null);
+
+      state.ui.stepStatus[1] = step1Done ? "complete" : "active";
+      state.ui.stepStatus[2] = step1Done ? (step2Done ? "complete" : "active") : "locked";
+      state.ui.stepStatus[3] = step2Done ? (step3Done ? "complete" : "active") : "locked";
+      state.ui.stepStatus[4] = step3Done ? (step4Done ? "complete" : "active") : "locked";
+
+      if (state.ui.stepStatus[state.ui.currentStep] === "locked") {
+        if (state.ui.stepStatus[1] !== "complete") state.ui.currentStep = 1;
+        else if (state.ui.stepStatus[2] !== "complete") state.ui.currentStep = 2;
+        else if (state.ui.stepStatus[3] !== "complete") state.ui.currentStep = 3;
+        else state.ui.currentStep = 4;
+      }
+    }
+
+    function setStep(stepNo) {
+      if (state.ui.stepStatus[stepNo] === "locked") return;
+      state.ui.currentStep = stepNo;
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStages();
+    }
+
+    function renderWizardHeader() {
+      const host = document.getElementById("wizardHeader");
+      host.innerHTML = stepDefs.map((s) => {
+        const st = state.ui.stepStatus[s.id];
+        const isActive = s.id === state.ui.currentStep;
+        const className = `step-btn ${isActive ? "active" : ""} ${st}`;
+        const disabled = st === "locked" ? "disabled" : "";
+        return `
+          <button class="${className}" data-step="${s.id}" ${disabled} aria-label="Step ${s.id}: ${s.title}">
+            <span class="n">${s.id}</span>
+            <span>
+              <span class="k">Step ${s.id}</span>
+              <span class="t">${s.title}</span>
+            </span>
+          </button>
+        `;
+      }).join("");
+
+      host.querySelectorAll(".step-btn").forEach((btn) => {
+        btn.addEventListener("click", () => setStep(Number(btn.dataset.step)));
+      });
+    }
+
+    function stageSummaryText(step) {
+      if (step === 1) {
+        const modelCount = state.questions.filter((q) => q.model_answer).length;
+        return `${state.questions.length} questions parsed · ${modelCount} model answers generated`;
+      }
+      if (step === 2) {
+        return `${state.students.length} students added`;
+      }
+      if (step === 3) {
+        const reviewed = state.students.filter((s) => (s.corrected_script || "").trim()).length;
+        const ocrDone = state.students.filter((s) => state.ocrMeta[s.id]?.hasOcr).length;
+        return `${ocrDone} OCR completed · ${reviewed} corrected scripts saved`;
+      }
+      if (step === 4) {
+        const scored = state.results.filter((r) => r.total_marks != null).length;
+        return scored ? `${scored} student results available` : "Ready to evaluate";
+      }
+      return "";
+    }
+
+    function renderStepSummaries() {
+      for (let i = 1; i <= 4; i += 1) {
+        const box = document.getElementById(`summary-${i}`);
+        const st = state.ui.stepStatus[i];
+        if (st === "complete") {
+          box.innerHTML = `
+            <div class="summary-text">
+              <span class="status-chip success">Complete</span>
+              <span>${escHtml(stageSummaryText(i))}</span>
+            </div>
+            <button class="btn small secondary" type="button" data-edit-step="${i}">Edit</button>
+          `;
+        } else if (st === "locked") {
+          box.innerHTML = `<div class="summary-text"><span class="status-chip idle">Locked</span><span>Complete earlier steps to unlock this stage.</span></div>`;
+        } else {
+          box.innerHTML = "";
+        }
+      }
+
+      document.querySelectorAll("[data-edit-step]").forEach((btn) => {
+        btn.addEventListener("click", () => setStep(Number(btn.dataset.editStep)));
+      });
+    }
+
+    function renderStageTags() {
+      for (let i = 1; i <= 4; i += 1) {
+        const tag = document.getElementById(`stage-tag-${i}`);
+        const st = state.ui.stepStatus[i];
+        if (st === "complete") tag.textContent = "Complete";
+        else if (st === "active") tag.textContent = "Active";
+        else tag.textContent = "Locked";
+      }
+    }
+
+    function renderStages() {
+      for (let i = 1; i <= 4; i += 1) {
+        const el = document.getElementById(`stage-${i}`);
+        const st = state.ui.stepStatus[i];
+        el.classList.remove("active", "complete", "locked");
+        el.classList.add(st);
+        if (i === state.ui.currentStep && st !== "locked") el.classList.add("active");
+      }
+    }
+
+    function bindDropzone(dropId, inputId, listId) {
+      const drop = document.getElementById(dropId);
+      const input = document.getElementById(inputId);
+      const out = document.getElementById(listId);
+
+      function showFiles(files) {
+        if (!files || !files.length) {
+          out.innerHTML = "";
+          return;
+        }
+        out.innerHTML = Array.from(files).map((f) => `<span class="file-chip" title="${escHtml(f.name)}">${escHtml(f.name)}</span>`).join("");
+      }
+
+      drop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        drop.classList.add("drag-over");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("drag-over"));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("drag-over");
+        if (!e.dataTransfer.files || !e.dataTransfer.files.length) return;
+        input.files = e.dataTransfer.files;
+        showFiles(input.files);
+      });
+      input.addEventListener("change", () => showFiles(input.files));
+    }
+
+    function renderExamPicker() {
+      const select = document.getElementById("examSelect");
+      if (!state.exams.length) {
+        select.innerHTML = `<option value="">No exams yet</option>`;
+        select.disabled = true;
+        return;
+      }
+      select.disabled = false;
+      select.innerHTML = state.exams.map((e) => {
+        const selected = state.exam && state.exam.id === e.id ? "selected" : "";
+        return `<option value="${e.id}" ${selected}>${escHtml(e.title)} (#${e.id})</option>`;
+      }).join("");
+    }
+
+    function renderCurrentExamMeta() {
+      const box = document.getElementById("currentExamMeta");
+      if (!state.exam) {
+        box.innerHTML = "<strong>No exam selected</strong><span>Create a new exam in Step 1 or open an existing exam below.</span>";
+        return;
+      }
+      box.innerHTML = `
+        <strong>${escHtml(state.exam.title)} (#${state.exam.id})</strong>
+        <span>Created ${escHtml(fmtDate(state.exam.created || ""))} · ${state.questions.length} questions · ${state.students.length} students</span>
+      `;
+    }
+
+    function studentOcrBadge(studentId) {
+      const meta = state.ocrMeta[studentId];
+      if (!meta || !meta.hasOcr) return '<span class="badge">Not run</span>';
+      if (meta.requiresReview) return `<span class="badge warn">Needs review (${Math.min(meta.lowCount, 999)})</span>`;
+      return '<span class="badge ok">Done</span>';
+    }
+
+    function renderStudentList() {
+      const box = document.getElementById("studentList");
+      if (!state.students.length) {
+        box.innerHTML = `<div class="empty">No students added yet.</div>`;
+        return;
+      }
+
+      box.innerHTML = state.students.map((s) => {
+        const corrected = (s.corrected_script || "").trim() ? '<span class="badge info">Corrected script</span>' : "";
+        return `
+          <div class="student-item">
+            <div class="student-top">
+              <div class="student-name">${escHtml(s.name)}</div>
+              <div class="student-actions">
+                ${studentOcrBadge(s.id)}
+                ${corrected}
+                <button class="btn small secondary" type="button" data-ocr-student="${s.id}">Run OCR</button>
+                <button class="btn small" type="button" data-review-student="${s.id}">Review OCR</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      box.querySelectorAll("[data-ocr-student]").forEach((btn) => {
+        btn.addEventListener("click", () => runStudentOcr(Number(btn.dataset.ocrStudent), true));
+      });
+      box.querySelectorAll("[data-review-student]").forEach((btn) => {
+        btn.addEventListener("click", () => loadReview(Number(btn.dataset.reviewStudent), true));
+      });
+    }
+
+    function renderReviewList() {
+      const box = document.getElementById("reviewList");
+      if (!state.students.length) {
+        box.innerHTML = `<div class="empty">Add students in Step 2, then use review here.</div>`;
+        return;
+      }
+
+      box.innerHTML = state.students.map((s) => {
+        const meta = state.ocrMeta[s.id];
+        const conf = meta && meta.confidence != null ? `OCR ${(meta.confidence * 100).toFixed(1)}%` : "OCR not run";
+        const badge = !meta || !meta.hasOcr
+          ? '<span class="badge">Not run</span>'
+          : (meta.requiresReview ? `<span class="badge warn">Needs review (${meta.lowCount})</span>` : '<span class="badge ok">Looks good</span>');
+        return `
+          <div class="review-item">
+            <div class="review-top">
+              <div>
+                <div class="review-name">${escHtml(s.name)}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">${escHtml(conf)}</div>
+              </div>
+              <div class="review-actions">
+                ${badge}
+                <button class="btn small secondary" type="button" data-review-load="${s.id}">Load OCR</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      box.querySelectorAll("[data-review-load]").forEach((btn) => {
+        btn.addEventListener("click", () => loadReview(Number(btn.dataset.reviewLoad), true));
+      });
+    }
+
+    function renderResults(results = state.results) {
+      const summary = document.getElementById("resultsSummary");
+      const list = document.getElementById("resultsList");
+      if (!results || !results.length || !results.some((r) => r.total_marks != null)) {
+        summary.innerHTML = "";
+        list.innerHTML = `<div class="empty">No results yet. Run evaluation to generate marks.</div>`;
+        return;
+      }
+
+      const valid = results.filter((r) => r.total_marks != null && r.max_marks != null);
+      const avgPct = valid.length ? valid.reduce((acc, r) => acc + ((r.max_marks ? (r.total_marks / r.max_marks) * 100 : 0)), 0) / valid.length : 0;
+      const passCount = valid.filter((r) => (r.max_marks ? (r.total_marks / r.max_marks) : 0) >= 0.7).length;
+      const failCount = valid.length - passCount;
+
+      summary.innerHTML = `
+        <div class="metric"><div class="k">Class Average</div><div class="v">${avgPct.toFixed(1)}%</div></div>
+        <div class="metric"><div class="k">Pass Count</div><div class="v">${passCount}</div></div>
+        <div class="metric"><div class="k">Fail Count</div><div class="v">${failCount}</div></div>
+      `;
+
+      list.innerHTML = results.map((r) => {
+        const pct = r.max_marks ? (r.total_marks / r.max_marks) * 100 : 0;
+        const scoreClass = pct >= 70 ? "ok" : pct >= 40 ? "warn" : "bad";
+        const evals = (r.evaluations || []).map((ev) => `
+          <div class="eval-row">
+            <div class="q">${escHtml(ev.question || ev.number || "Q")}</div>
+            <div>${escHtml(ev.reason || "No reason")}</div>
+            <div class="m">${escHtml(String(ev.marks_awarded ?? ev.marks ?? 0))}/${escHtml(String(ev.max_marks ?? ev.max ?? 0))}</div>
+          </div>
+        `).join("");
+
+        return `
+          <article class="result-card" id="result-${r.student_id}">
+            <div class="result-top">
+              <div>
+                <div class="result-name">${escHtml(r.student_name)}</div>
+                <div class="progress"><span style="width:${Math.max(0, Math.min(100, pct))}%"></span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="score-pill ${scoreClass}">${escHtml(String(r.total_marks ?? 0))}/${escHtml(String(r.max_marks ?? 0))}</span>
+                <button class="btn small" type="button" data-toggle-result="${r.student_id}">Details</button>
+              </div>
+            </div>
+            <div class="result-body" id="result-body-${r.student_id}">
+              ${evals}
+              ${r.feedback ? `<div class="feedback">${escHtml(r.feedback)}</div>` : ""}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      list.querySelectorAll("[data-toggle-result]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const card = document.getElementById(`result-${btn.dataset.toggleResult}`);
+          card.classList.toggle("open");
+        });
+      });
+    }
+
+    function renderControls() {
+      document.getElementById("createExamBtn").disabled = state.ui.busy.createExam;
+      document.getElementById("addStudentBtn").disabled = state.ui.busy.addStudent || state.ui.stepStatus[2] === "locked";
+      document.getElementById("runAllOcrBtn").disabled = state.ui.busy.ocr || state.students.length === 0 || state.ui.stepStatus[2] === "locked";
+      document.getElementById("evaluateBtn").disabled = state.ui.busy.evaluate || !canEvaluate() || state.ui.stepStatus[4] === "locked";
+      document.getElementById("refreshResultsBtn").disabled = !state.exam || state.ui.stepStatus[4] === "locked";
+      document.getElementById("saveCorrectionBtn").disabled = state.ui.busy.saveCorrection || !state.review.studentId;
+      document.getElementById("openExamBtn").disabled = !state.exams.length;
+      document.getElementById("refreshExamBtn").disabled = !state.exam;
+      document.getElementById("deleteExamBtn").disabled = !state.exams.length || state.ui.busy.createExam || state.ui.busy.evaluate || state.ui.busy.ocr;
+    }
+
+    async function loadExams() {
+      const res = await api("GET", "/api/exams");
+      if (res.error) {
+        setStatus(1, "error", res.error);
+        return;
+      }
+      state.exams = res;
+      renderExamPicker();
+    }
+
+    async function openExam(id, jumpStep = true) {
+      if (!id) return;
+      const res = await api("GET", `/api/exams/${id}`);
+      if (res.error) {
+        setStatus(1, "error", res.error);
+        return;
+      }
+      state.exam = res;
+      state.students = res.students || [];
+      state.questions = res.questions || [];
+      state.results = [];
+      state.review.studentId = null;
+      document.getElementById("reviewPanel").classList.add("hidden");
+      document.getElementById("manualQuestionBtn").classList.add("hidden");
+      renderCurrentExamMeta();
+      renderExamPicker();
+      renderStudentList();
+      renderReviewList();
+      renderResults([]);
+      await loadResults(false);
+      syncStepStateFromData();
+      if (jumpStep) {
+        if (state.ui.stepStatus[1] !== "complete") state.ui.currentStep = 1;
+        else if (state.ui.stepStatus[2] !== "complete") state.ui.currentStep = 2;
+        else if (state.ui.stepStatus[3] !== "complete") state.ui.currentStep = 3;
+        else state.ui.currentStep = 4;
+      }
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      resetStatuses();
+      setStatus(1, "success", "Exam loaded. Continue from the active step.");
+    }
+
+    function clearCurrentExamState() {
+      state.exam = null;
+      state.students = [];
+      state.questions = [];
+      state.results = [];
+      state.review.studentId = null;
+      state.ocrMeta = {};
+      document.getElementById("reviewPanel").classList.add("hidden");
+      document.getElementById("manualQuestionBtn").classList.add("hidden");
+      renderCurrentExamMeta();
+      renderStudentList();
+      renderReviewList();
+      renderResults([]);
+      syncStepStateFromData();
+      state.ui.currentStep = 1;
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      resetStatuses();
+    }
+
+    async function deleteSelectedExam() {
+      const selectedId = Number(document.getElementById("examSelect").value || (state.exam && state.exam.id) || 0);
+      if (!selectedId) {
+        setStatus(1, "warning", "Select an exam to delete.");
+        return;
+      }
+
+      const selectedExam = state.exams.find((e) => e.id === selectedId);
+      const label = selectedExam ? `${selectedExam.title} (#${selectedId})` : `#${selectedId}`;
+      const ok = window.confirm(`Delete exam ${label}? This will permanently remove its questions, students, OCR data, and results.`);
+      if (!ok) return;
+
+      setStatus(1, "running", `Deleting exam ${label}...`);
+      const out = await api("DELETE", `/api/exams/${selectedId}`);
+      if (out.error) {
+        setStatus(1, "error", out.error);
+        return;
+      }
+
+      await loadExams();
+      if (state.exams.length) {
+        const nextId = state.exams[0].id;
+        await openExam(nextId, false);
+        setStatus(1, "success", `Deleted ${label}. Loaded ${state.exams[0].title} (#${nextId}).`);
+      } else {
+        clearCurrentExamState();
+        setStatus(1, "success", `Deleted ${label}. No exams remain.`);
+      }
+    }
+
+    async function createExamAndPrepare() {
+      const title = document.getElementById("examTitle").value.trim();
+      const qp = document.getElementById("questionPaper").files[0];
+
+      if (!title) {
+        setStatus(1, "error", "Exam title is required.");
+        return;
+      }
+      if (!qp) {
+        setStatus(1, "error", "Question paper file is required.");
+        return;
+      }
+
+      setBusy("createExam", true);
+      setStatus(1, "running", "Creating exam...");
+      document.getElementById("manualQuestionBtn").classList.add("hidden");
+
+      const fd = new FormData();
+      fd.append("title", title);
+      fd.append("question_paper", qp);
+
+      const created = await api("POST", "/api/exams", fd, true);
+      if (created.error) {
+        setBusy("createExam", false);
+        setStatus(1, "error", created.error);
+        return;
+      }
+
+      const prep = await api("POST", `/api/exams/${created.id}/auto-prepare`);
+      if (prep.error) {
+        await openExam(created.id, false);
+        setBusy("createExam", false);
+        setStatus(1, "warning", `${prep.error} You can continue manually.`);
+        document.getElementById("manualQuestionBtn").classList.remove("hidden");
+        return;
+      }
+
+      await loadExams();
+      await openExam(created.id, false);
+      setBusy("createExam", false);
+
+      const msg = `${prep.question_count} questions parsed, ${prep.model_answers_generated} model answers generated.`;
+      setStatus(1, "success", msg);
+      syncStepStateFromData();
+      setStep(2);
+    }
+
+    async function addStudent() {
+      if (!state.exam) {
+        setStatus(2, "error", "Create or open an exam first.");
+        return;
+      }
+
+      const name = document.getElementById("studentName").value.trim();
+      const files = document.getElementById("studentSheets").files;
+
+      if (!name) {
+        setStatus(2, "error", "Student name is required.");
+        return;
+      }
+      if (!files || !files.length) {
+        setStatus(2, "error", "At least one answer sheet is required.");
+        return;
+      }
+
+      setBusy("addStudent", true);
+      setStatus(2, "running", "Uploading answer sheets...");
+
+      const fd = new FormData();
+      fd.append("name", name);
+      Array.from(files).forEach((f) => fd.append("sheets", f));
+
+      const out = await api("POST", `/api/exams/${state.exam.id}/students`, fd, true);
+      setBusy("addStudent", false);
+      if (out.error) {
+        setStatus(2, "error", out.error);
+        return;
+      }
+
+      state.students.push({ id: out.student_id, name, corrected_script: "" });
+      document.getElementById("studentName").value = "";
+      document.getElementById("studentSheets").value = "";
+      document.getElementById("sheetFiles").innerHTML = "";
+
+      renderStudentList();
+      renderReviewList();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      setStatus(2, "success", `Student "${name}" added.`);
+    }
+
+    async function runStudentOcr(studentId, moveToReview = false) {
+      setBusy("ocr", true);
+      setStatus(2, "running", "Running OCR...");
+      const out = await api("POST", `/api/students/${studentId}/ocr`);
+      setBusy("ocr", false);
+      if (out.error) {
+        setStatus(2, "error", out.error);
+        return;
+      }
+
+      state.ocrMeta[studentId] = {
+        hasOcr: true,
+        confidence: out.avg_confidence || 0,
+        requiresReview: Boolean(out.requires_review),
+        lowCount: (out.low_conf_words || []).length,
+      };
+
+      renderStudentList();
+      renderReviewList();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+
+      const confPct = ((out.avg_confidence || 0) * 100).toFixed(1);
+      if (out.requires_review) {
+        setStatus(2, "warning", `OCR done (${confPct}%). Review recommended due to low-confidence text.`);
+      } else {
+        setStatus(2, "success", `OCR done (${confPct}%).`);
+      }
+
+      if (moveToReview) {
+        setStep(3);
+        await loadReview(studentId, false);
+      }
+    }
+
+    async function runAllOcr() {
+      if (!state.students.length) {
+        setStatus(2, "error", "No students to OCR.");
+        return;
+      }
+
+      setBusy("ocr", true);
+      setStatus(2, "running", "Running OCR for all students...");
+
+      for (const s of state.students) {
+        const out = await api("POST", `/api/students/${s.id}/ocr`);
+        if (out.error) {
+          setBusy("ocr", false);
+          setStatus(2, "error", `OCR failed for ${s.name}: ${out.error}`);
+          return;
+        }
+        state.ocrMeta[s.id] = {
+          hasOcr: true,
+          confidence: out.avg_confidence || 0,
+          requiresReview: Boolean(out.requires_review),
+          lowCount: (out.low_conf_words || []).length,
+        };
+      }
+
+      setBusy("ocr", false);
+      renderStudentList();
+      renderReviewList();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      setStatus(2, "success", "OCR completed for all students.");
+      setStep(3);
+    }
+
+    async function loadReview(studentId, jumpToStep = false) {
+      if (!studentId) return;
+      setBusy("review", true);
+      setStatus(3, "running", "Loading OCR review data...");
+      const out = await api("GET", `/api/students/${studentId}/ocr`);
+      setBusy("review", false);
+      if (out.error) {
+        setStatus(3, "error", out.error);
+        return;
+      }
+
+      state.review.studentId = studentId;
+      state.ocrMeta[studentId] = {
+        hasOcr: Boolean((out.ocr_text || "").trim()),
+        confidence: out.avg_confidence || 0,
+        requiresReview: Boolean(out.requires_review),
+        lowCount: (out.low_conf_words || []).length,
+      };
+
+      document.getElementById("reviewPanel").classList.remove("hidden");
+      document.getElementById("ocrRaw").value = out.ocr_text || "";
+      document.getElementById("correctedScript").value = out.corrected_script || out.ocr_text || "";
+      document.getElementById("reviewSaveText").textContent = "";
+
+      const warning = document.getElementById("reviewWarning");
+      if (out.requires_review) {
+        warning.classList.remove("hidden");
+        warning.textContent = `Low-confidence OCR detected: ${(out.low_conf_words || []).length} tokens flagged.`;
+        setStatus(3, "warning", "Review recommended. Update corrected script if needed.");
+      } else {
+        warning.classList.add("hidden");
+        warning.textContent = "";
+        setStatus(3, "success", "OCR loaded. Confidence looks good.");
+      }
+
+      renderStudentList();
+      renderReviewList();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+
+      if (jumpToStep) setStep(3);
+    }
+
+    async function saveCorrection() {
+      if (!state.review.studentId) return;
+      const corrected = document.getElementById("correctedScript").value.trim();
+      if (!corrected) {
+        document.getElementById("reviewSaveText").textContent = "Corrected script cannot be empty.";
+        return;
+      }
+
+      setBusy("saveCorrection", true);
+      setStatus(3, "running", "Saving corrected script...");
+      const out = await api("POST", `/api/students/${state.review.studentId}/correct-script`, { corrected_script: corrected });
+      setBusy("saveCorrection", false);
+
+      if (out.error) {
+        setStatus(3, "error", out.error);
+        document.getElementById("reviewSaveText").textContent = out.error;
+        return;
+      }
+
+      const student = state.students.find((s) => s.id === state.review.studentId);
+      if (student) student.corrected_script = corrected;
+
+      const now = new Date();
+      document.getElementById("reviewSaveText").textContent = `Saved at ${now.toLocaleTimeString()}. Evaluation will use this corrected script.`;
+      setStatus(3, "success", "Corrected script saved.");
+
+      renderStudentList();
+      renderReviewList();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+    }
+
+    async function runEvaluation() {
+      if (!state.exam) {
+        setStatus(4, "error", "Create or open an exam first.");
+        return;
+      }
+      if (!canEvaluate()) {
+        setStatus(4, "warning", "Run OCR or save at least one corrected script before evaluation.");
+        return;
+      }
+
+      setBusy("evaluate", true);
+      setStatus(4, "running", "Running evaluation...");
+      const out = await api("POST", `/api/exams/${state.exam.id}/evaluate`);
+      setBusy("evaluate", false);
+
+      if (out.error) {
+        setStatus(4, "error", out.error);
+        return;
+      }
+
+      state.results = out.results || [];
+      renderResults();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      setStatus(4, "success", "Evaluation complete.");
+    }
+
+    async function loadResults(showStatus = true) {
+      if (!state.exam) return;
+      if (showStatus) setStatus(4, "running", "Loading results...");
+      const out = await api("GET", `/api/exams/${state.exam.id}/results`);
+      if (out.error) {
+        if (showStatus) setStatus(4, "error", out.error);
+        return;
+      }
+      state.results = out.results || [];
+      renderResults();
+      syncStepStateFromData();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      if (showStatus) {
+        if (state.results.some((r) => r.total_marks != null)) setStatus(4, "success", "Results loaded.");
+        else setStatus(4, "idle", "No results yet. Run evaluation to generate marks.");
+      }
+    }
+
+    function wireEvents() {
+      bindDropzone("qpDrop", "questionPaper", "qpFiles");
+      bindDropzone("sheetDrop", "studentSheets", "sheetFiles");
+
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+        await api("POST", "/api/logout");
+        window.location.href = "/login";
+      });
+
+      document.getElementById("openExamBtn").addEventListener("click", () => {
+        const id = Number(document.getElementById("examSelect").value);
+        if (id) openExam(id);
+      });
+
+      document.getElementById("examSelect").addEventListener("change", () => {
+        const id = Number(document.getElementById("examSelect").value);
+        if (id && (!state.exam || state.exam.id !== id)) {
+          openExam(id);
+        }
+      });
+
+      document.getElementById("refreshExamBtn").addEventListener("click", () => {
+        if (state.exam) openExam(state.exam.id, false);
+      });
+      document.getElementById("deleteExamBtn").addEventListener("click", deleteSelectedExam);
+
+      document.getElementById("createExamBtn").addEventListener("click", createExamAndPrepare);
+      document.getElementById("addStudentBtn").addEventListener("click", addStudent);
+      document.getElementById("runAllOcrBtn").addEventListener("click", runAllOcr);
+      document.getElementById("saveCorrectionBtn").addEventListener("click", saveCorrection);
+      document.getElementById("evaluateBtn").addEventListener("click", runEvaluation);
+      document.getElementById("refreshResultsBtn").addEventListener("click", () => loadResults(true));
+
+      document.getElementById("manualQuestionBtn").addEventListener("click", () => {
+        setStatus(1, "info", "Auto-prepare failed. Use a cleaner scan or switch to manual setup in your admin flow.");
+      });
+
+      document.getElementById("clearReviewBtn").addEventListener("click", () => {
+        state.review.studentId = null;
+        document.getElementById("reviewPanel").classList.add("hidden");
+        document.getElementById("reviewSaveText").textContent = "";
+      });
+    }
+
+    async function boot() {
+      wireEvents();
+      renderWizardHeader();
+      renderStepSummaries();
+      renderStageTags();
+      renderStages();
+      renderControls();
+      renderCurrentExamMeta();
+      renderStudentList();
+      renderReviewList();
+      renderResults([]);
+      resetStatuses();
+
+      await loadExams();
+      if (state.exams.length) {
+        await openExam(state.exams[0].id, false);
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
