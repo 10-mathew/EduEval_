@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: edueval-backend
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: false
+      - key: SESSION_COOKIE_SECURE
+        value: true
+      - key: SESSION_COOKIE_SAMESITE
+        value: None
+      - key: FRONTEND_ORIGINS
+        value: https://10-mathew.github.io
+      - key: DB_PATH
+        value: /opt/render/project/src/instance/edueval.db
+      - key: OCR_LOW_CONF_THRESHOLD
+        value: 0.75
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

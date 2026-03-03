@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduEval Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-accent: #111827;
+      --glow: rgba(79, 70, 229, 0.15);
+      --surface: rgba(17, 24, 39, 0.75);
+      --surface-2: rgba(31, 41, 55, 0.6);
+      --border: rgba(99, 102, 241, 0.25);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --accent: #6366f1;
+      --accent-ink: #ffffff;
+      --ok: #34d399;
+      --bad: #f87171;
+      --r: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(1000px 580px at -8% -15%, var(--glow) 0%, transparent 60%),
+        radial-gradient(900px 520px at 108% -8%, var(--glow) 0%, transparent 58%),
+        linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 44%);
+      color: var(--text);
+      font-family: "Syne", sans-serif;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .card {
+      width: min(430px, 100%);
+      background: var(--surface);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24), 0 0 20px rgba(99, 102, 241, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #e5e7eb;
+      letter-spacing: -0.6px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #9ca3af;
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-family: "DM Mono", monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      /* Glass style */
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+
+    input[type="text"]::placeholder,
+    input[type="password"]::placeholder {
+      color: #9ca3af;
+    }
+
+    input:focus,
+    button:focus-visible,
+    a:focus-visible {
+      border-color: #6366f1;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      border: 1px solid transparent;
+      /* removed border to fit gradient */
+      border-radius: var(--r);
+      min-height: 42px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: var(--accent-ink);
+      font-family: "Syne", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: filter 140ms ease;
+    }
+
+    button:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .msg {
+      min-height: 18px;
+      margin-top: 12px;
+      font-size: 12px;
+      font-family: "DM Mono", monospace;
+      color: var(--muted);
+    }
+
+    .msg.ok {
+      color: var(--ok);
+    }
+
+    .msg.error {
+      color: var(--bad);
+    }
+
+    .hint {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hint a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+
+    .hint a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-field label {
+      margin-bottom: 0;
+      text-transform: none;
+      letter-spacing: normal;
+      font-family: "Syne", sans-serif;
+      font-size: 13px;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    .checkbox-field input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      position: relative;
+      outline: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .checkbox-field input[type="checkbox"]:checked {
+      background: #6366f1;
+      border-color: #6366f1;
+    }
+
+    .checkbox-field input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 4.5px;
+      top: 1.5px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: #9ca3af;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+      color: #e5e7eb;
+    }
+
+    /* Splash Screen Styles */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background:
+        radial-gradient(1000px 580px at 50% 50%, var(--glow) 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg-accent) 0%, var(--bg) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.4s ease;
+    }
+
+    #splash-logo {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text);
+      opacity: 0;
+      transform: translateX(30px);
+      animation: splashAnim 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      text-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .shimmer-line {
+      width: 120px;
+      height: 2px;
+      margin-top: 8px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      animation: shimmerAnim 1.5s ease forwards;
+    }
+
+    @keyframes splashAnim {
+      0% {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes shimmerAnim {
+      0% {
+        opacity: 0;
+        width: 0;
+      }
+
+      50% {
+        opacity: 0.8;
+        width: 120px;
+      }
+
+      100% {
+        opacity: 0;
+        width: 150px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="splash-screen">
+    <div id="splash-logo">EduEval</div>
+    <div class="shimmer-line"></div>
+  </div>
+
+  <div class="card">
+    <h1>Teacher Login</h1>
+    <p>Access your evaluation dashboard</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" placeholder="Enter your username" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password"
+          required />
+      </div>
+
+      <div class="checkbox-row">
+        <div class="checkbox-field">
+          <input id="remember" type="checkbox" />
+          <label for="remember">Remember Me</label>
+        </div>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <button id="loginBtn" type="submit">Login</button>
+      <div id="msg" class="msg" aria-live="polite"></div>
+    </form>
+
+    <div class="hint">No account yet? <a href="/register">Create one</a></div>
+  </div>
+
+  <script>
+    const msg = document.getElementById("msg");
+    const form = document.getElementById("loginForm");
+    const btn = document.getElementById("loginBtn");
+    const splash = document.getElementById("splash-screen");
+
+    // Splash screen logic
+    if (!sessionStorage.getItem("splashSeen")) {
+      sessionStorage.setItem("splashSeen", "true");
+      setTimeout(() => {
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => splash.remove(), 400);
+        }
+      }, 1500);
+    } else {
+      if (splash) splash.remove();
+    }
+
+    function setMsg(text, type = "error") {
+      msg.textContent = text || "";
+      msg.className = `msg ${type}`;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const remember = document.getElementById("remember").checked;
+
+      if (!username || !password) {
+        setMsg("Username and password are required.", "error");
+        return;
+      }
+
+      btn.disabled = true;
+      setMsg("Checking credentials...", "ok");
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password, remember }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          setMsg(data.error || "Login failed.", "error");
+          btn.disabled = false;
+          return;
+        }
+
+        setMsg("Login successful. Redirecting...", "ok");
+        window.location.href = "/app";
+      } catch (_) {
+        setMsg("Network error. Please try again.", "error");
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+
+</html>
