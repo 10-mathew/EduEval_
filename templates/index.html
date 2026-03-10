@@ -1158,7 +1158,7 @@
       `).join("");
     }
 
-    async function api(method, url, body = null, isForm = false) {
+    async function api(method, url, body = null, isForm = false, timeoutMs = 45000) {
       const opts = { method, credentials: "include" };
       if (body) {
         if (isForm) {
@@ -1168,7 +1168,6 @@
           opts.body = JSON.stringify(body);
         }
       }
-      const timeoutMs = 45000;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       opts.signal = controller.signal;
@@ -1620,8 +1619,8 @@
         return;
       }
       setBusy("evaluate", true);
-      setStatus(4, "running", "Generating marking drafts...");
-      const out = await api("POST", `/api/exams/${state.exam.id}/marking-drafts/generate`);
+      setStatus(4, "running", "Generating marking drafts... this may take several minutes.");
+      const out = await api("POST", `/api/exams/${state.exam.id}/marking-drafts/generate`, null, false, 900000);
       setBusy("evaluate", false);
       if (out.error) {
         setStatus(4, "error", out.error);

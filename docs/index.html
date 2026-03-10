@@ -1038,7 +1038,7 @@
       el.style.color = ok ? "var(--ok)" : "var(--muted)";
     }
 
-    async function api(method, url, body = null, isForm = false) {
+    async function api(method, url, body = null, isForm = false, timeoutMs = 45000) {
       const opts = { method, credentials: "include" };
       if (body) {
         if (isForm) {
@@ -1048,7 +1048,6 @@
           opts.body = JSON.stringify(body);
         }
       }
-      const timeoutMs = 45000;
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       opts.signal = controller.signal;

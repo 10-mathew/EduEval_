@@ -53,7 +53,7 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GOOGLE_CLOUD_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 OCR_LOW_CONF_THRESHOLD = float(os.environ.get("OCR_LOW_CONF_THRESHOLD", "0.75"))
-GEMINI_TIMEOUT_SECONDS = float(os.environ.get("GEMINI_TIMEOUT_SECONDS", "8"))
+GEMINI_TIMEOUT_SECONDS = float(os.environ.get("GEMINI_TIMEOUT_SECONDS", "30"))
 GEMINI_USE_NETWORK = os.environ.get("GEMINI_USE_NETWORK", "false").lower() in {"1", "true", "yes", "on"}
 
 # Optional: JSON credentials payload to avoid mounting a credentials file in deployment.
@@ -2339,4 +2339,5 @@ init_db()
 if __name__ == "__main__":
     debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
     port = int(os.environ.get("PORT", "5000"))
-    app.run(host="0.0.0.0", debug=debug_mode, port=port)
+    host = os.environ.get("HOST", "0.0.0.0")
+    app.run(host=host, debug=debug_mode, port=port)

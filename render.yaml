@@ -23,3 +23,7 @@ services:
         value: 0.75
       - key: GEMINI_MODEL
         value: gemini-2.5-flash
+      - key: GEMINI_USE_NETWORK
+        value: true
+      - key: GEMINI_TIMEOUT_SECONDS
+        value: 30
